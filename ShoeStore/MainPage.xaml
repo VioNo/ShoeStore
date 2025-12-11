@@ -1,0 +1,69 @@
+﻿<Page x:Class="ShoeStore.MainPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:ShoeStore"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800"
+      Title="MainPage">
+
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="MainStyle.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Page.Resources>
+
+    <Grid Margin="0,0,0,-149">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Заголовок -->
+        <Border Grid.Row="0" >
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Image Source="/Resources/icon.png" Width="50" Height="50" Margin="0,0,20,0"/>
+                <TextBlock Style="{StaticResource HeaderText}" Text="МАГАЗИН ОБУВИ"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Форма авторизации -->
+        <Border Background="White" Margin="48,0,50,111" Grid.Row="1">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Width="300">
+                <TextBlock Text="АВТОРИЗАЦИЯ" 
+                        FontSize="20" 
+                        FontWeight="Bold" 
+                        HorizontalAlignment="Center" 
+                        Margin="0,0,0,30"
+                        Foreground="#2E8B57"/>
+
+                <TextBlock Text="Логин:" Style="{StaticResource LabelText}"/>
+                <TextBox x:Name="LoginTextBox" 
+                      Height="35"
+                      />
+
+                <TextBlock Text="Пароль:" Style="{StaticResource LabelText}"/>
+                <PasswordBox x:Name="PasswordBox" 
+                          Height="35"
+                          />
+                <Button Content="АВТОРИЗОВАТЬСЯ" 
+                     x:Name="SignInButton" 
+                     Click="SignInButton_Click"
+                     
+                     FontWeight="Bold"
+                     Background="#00FA9A"
+                     />
+                <TextBlock RenderTransformOrigin="0.555,1.407"><Run Language="ru-ru" Text="                                       "/><Run Text="или"/></TextBlock>
+
+                <Button Content="ВОЙТИ КАК ГОСТЬ" 
+                     x:Name="GuestButton" 
+                     Click="GuestButton_Click"
+                     
+                     />
+            </StackPanel>
+        </Border>
+    </Grid>
+</Page>
