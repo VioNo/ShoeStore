@@ -4,7 +4,6 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:ShoeStore"
-      xmlns:converter="clr-namespace:ShoeStore;assembly=ShoeStore"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       Title="GuestPage">
@@ -15,7 +14,7 @@
                 <ResourceDictionary Source="MainStyle.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
-            <!-- Конвертеры -->
+             <!--Конвертеры-->
             <local:ImagePathConverter x:Key="ImagePathConverter"/>
             <local:DiscountToVisibilityConverter x:Key="DiscountToVisibilityConverter"/>
             <local:DiscountColorConverter x:Key="DiscountColorConverter"/>

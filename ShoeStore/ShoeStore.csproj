@@ -79,12 +79,9 @@
     <Compile Include="Categories.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
-    <Compile Include="DiscountColorConverter.cs" />
-    <Compile Include="DiscountToVisibilityConverter.cs" />
     <Compile Include="GuestPage.xaml.cs">
       <DependentUpon>GuestPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ImagePathConverter.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
@@ -150,6 +147,7 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
@@ -158,10 +156,6 @@
     <Page Include="ManagPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Themes\Generic.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
   <ItemGroup>
@@ -211,7 +205,9 @@
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Themes\" />
+  </ItemGroup>
   <ItemGroup>
     <Content Include="Model.Context.tt">
       <Generator>TextTemplatingFileGenerator</Generator>

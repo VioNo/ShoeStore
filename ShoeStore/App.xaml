@@ -4,9 +4,9 @@
              xmlns:local="clr-namespace:ShoeStore"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-        <!--<local:ImagePathConverter x:Key="ImagePathConverter"/>
+        <!-- Регистрируем конвертеры здесь --><!--
+        <local:ImagePathConverter x:Key="ImagePathConverter"/>
         <local:DiscountToVisibilityConverter x:Key="DiscountToVisibilityConverter"/>
         <local:DiscountColorConverter x:Key="DiscountColorConverter"/>-->
-
     </Application.Resources>
 </Application>
