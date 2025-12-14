@@ -54,7 +54,7 @@ namespace ShoeStore
                     switch (user.Id_role)
                     {
                         case 1: // Администратор
-                            NavigationService.Navigate(new AdminPage());
+                            NavigationService.Navigate(new AdminPage(user));
                             break;
                         case 2: // Менеджер
                             NavigationService.Navigate(new ManagPage(user));

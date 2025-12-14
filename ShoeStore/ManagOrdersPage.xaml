@@ -1,0 +1,246 @@
+﻿<Page x:Class="ShoeStore.ManagOrdersPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:ShoeStore"
+      mc:Ignorable="d" 
+      d:DesignHeight="700" d:DesignWidth="1000"
+      Title="Управление заказами">
+
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="MainStyle.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Стиль для карточки заказа -->
+            <Style x:Key="OrderCardStyle" TargetType="Border">
+                <Setter Property="Background" Value="White"/>
+                <Setter Property="BorderBrush" Value="#E0E0E0"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="CornerRadius" Value="5"/>
+                <Setter Property="Margin" Value="5"/>
+                <Setter Property="Padding" Value="15"/>
+            </Style>
+
+            <!-- Стиль для названия поля -->
+            <Style x:Key="FieldNameStyle" TargetType="TextBlock">
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="Foreground" Value="#333333"/>
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Margin" Value="0,2,5,2"/>
+            </Style>
+
+            <!-- Стиль для значения поля -->
+            <Style x:Key="FieldValueStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="FontWeight" Value="Normal"/>
+                <Setter Property="Foreground" Value="#333333"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Margin" Value="0,2,0,2"/>
+                <Setter Property="TextWrapping" Value="Wrap"/>
+            </Style>
+
+            <!-- Стиль для артикула -->
+            <Style x:Key="ArticleValueStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="Foreground" Value="#333333"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Margin" Value="0,2,0,2"/>
+            </Style>
+
+            <!-- Стиль для статуса -->
+            <Style x:Key="StatusValueStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Margin" Value="0,2,0,2"/>
+                <Setter Property="Padding" Value="5,2"/>
+            </Style>
+
+            <!-- Стиль для кнопки выхода -->
+            <Style x:Key="LogoutButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                <Setter Property="Background" Value="#E53935"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="Padding" Value="10 5"/>
+                <Setter Property="Margin" Value="10 0 0 0"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Cursor" Value="Hand"/>
+            </Style>
+
+            <!-- Конвертер для цвета статуса -->
+            <local:StatusColorConverter x:Key="StatusColorConverter"/>
+        </ResourceDictionary>
+    </Page.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Заголовок с информацией о пользователе -->
+        <Border Grid.Row="0" Padding="10" BorderBrush="#ddd" BorderThickness="0 0 0 1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Заголовок слева -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                    <TextBlock Style="{StaticResource HeaderText}" Text="УПРАВЛЕНИЕ ЗАКАЗАМИ - МЕНЕДЖЕР"/>
+                </StackPanel>
+
+                <!-- Информация о пользователе справа -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <StackPanel Orientation="Vertical" Margin="0 0 10 0">
+                        <TextBlock Text="Вы вошли как:" 
+                                   FontSize="10" 
+                                   Foreground="#666"
+                                   HorizontalAlignment="Right"/>
+                        <TextBlock x:Name="UserInfoTextBlock" 
+                                   FontSize="14" 
+                                   FontWeight="Bold"
+                                   Foreground="#333"
+                                   HorizontalAlignment="Right"/>
+                    </StackPanel>
+                    <Button x:Name="LogoutButton" 
+                            Content="ВЫЙТИ" 
+                            Click="LogoutButton_Click" 
+                            Width="80"
+                            FontSize="12"
+                            Style="{StaticResource LogoutButtonStyle}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Основной контент с заказами -->
+        <Border Grid.Row="1" Background="#F5F5F5" Margin="10">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl x:Name="ItemsControlOrders">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource OrderCardStyle}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <!-- Первая строка: Артикул заказа -->
+                                        <RowDefinition Height="Auto"/>
+                                        <!-- Вторая строка: Статус заказа -->
+                                        <RowDefinition Height="Auto"/>
+                                        <!-- Третья строка: Адрес пункта выдачи -->
+                                        <RowDefinition Height="Auto"/>
+                                        <!-- Четвертая строка: Даты заказа и доставки -->
+                                        <RowDefinition Height="Auto"/>
+                                        <!-- Пятая строка: Информация о товаре и пользователе -->
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Первая строка: Артикул заказа -->
+                                    <TextBlock Grid.Row="0"
+                                               Text="{Binding Article, StringFormat={}Артикул заказа: {0}}"
+                                               Style="{StaticResource ArticleValueStyle}"
+                                               Margin="0,0,0,5"/>
+
+                                    <!-- Вторая строка: Статус заказа -->
+                                    <TextBlock Grid.Row="1"
+                                               Text="{Binding Statuses.Status, StringFormat={}Статус заказа: {0}}"
+                                               Style="{StaticResource StatusValueStyle}"
+                                               Foreground="{Binding Statuses.Status, Converter={StaticResource StatusColorConverter}}"
+                                               Margin="0,0,0,5"/>
+
+                                    <!-- Третья строка: Адрес пункта выдачи -->
+                                    <TextBlock Grid.Row="2"
+                                               Text="{Binding Addresses.Address, StringFormat={}Адрес пункта выдачи: {0}}"
+                                               Style="{StaticResource FieldValueStyle}"
+                                               Margin="0,0,0,5"/>
+
+                                    <!-- Четвертая строка: Даты заказа и доставки -->
+                                    <Grid Grid.Row="3" Margin="0,0,0,5">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Дата заказа слева -->
+                                        <TextBlock Grid.Column="0"
+                                                   Text="{Binding Order_date, StringFormat={}Дата заказа: {0:dd.MM.yyyy 00:00}}"
+                                                   Style="{StaticResource FieldValueStyle}"/>
+
+                                        <!-- Пустой разделитель -->
+                                        <TextBlock Grid.Column="1"
+                                                   Text=""
+                                                   Width="20"/>
+
+                                        <!-- Дата доставки справа -->
+                                        <TextBlock Grid.Column="2"
+                                                   Text="{Binding Delivery_date, StringFormat={}Дата доставки: {0:dd.MM.yyyy 00:00}}"
+                                                   Style="{StaticResource FieldValueStyle}"
+                                                   HorizontalAlignment="Right"/>
+                                    </Grid>
+
+                                    <!-- Пятая строка: Информация о товаре и пользователе -->
+                                    <Grid Grid.Row="4" Margin="0,10,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Надпись "Товар:" -->
+                                        <TextBlock Grid.Column="0"
+                                                   Text="Товар:"
+                                                   Style="{StaticResource FieldNameStyle}"/>
+
+                                        <!-- Название товара -->
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding Tovar.Types.Type}"
+                                                   Style="{StaticResource FieldValueStyle}"
+                                                   Margin="0,0,10,0"/>
+
+                                        <!-- Надпись "Пользователь:" -->
+                                        <TextBlock Grid.Column="2"
+                                                   Text="Пользователь:"
+                                                   Style="{StaticResource FieldNameStyle}"/>
+
+                                        <!-- ФИО пользователя -->
+                                        <TextBlock Grid.Column="3"
+                                                   Text="{Binding User.Fio}"
+                                                   Style="{StaticResource FieldValueStyle}"/>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+
+        <!-- Кнопка возврата -->
+        <Border Grid.Row="2" Padding="10">
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="BackButton" 
+                        Content="ВЕРНУТЬСЯ К ТОВАРАМ" 
+                        Click="BackButton_Click" 
+                        Width="250" 
+                        FontSize="16" 
+                        HorizontalAlignment="Left"/>
+
+                
+
+                <TextBlock x:Name="txtStatistics" 
+                           Margin="20,0,0,0"
+                           VerticalAlignment="Center"
+                           FontSize="12"
+                           Foreground="#666"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Page>

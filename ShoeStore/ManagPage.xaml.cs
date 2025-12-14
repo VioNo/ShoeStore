@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Windows;
-using System.Windows.Controls;
 using System.Data.Entity;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Net.NetworkInformation;
+using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -28,8 +29,6 @@ namespace ShoeStore
         private int? _selectedCategoryId = null;
         private int? _selectedManufacturerId = null;
         private int? _selectedSupplierId = null;
-        private string _discountFilter = "Все товары";
-        private string _currentSort = "";
 
         public ManagPage(User user)
         {
@@ -74,8 +73,8 @@ namespace ShoeStore
                 // Заполняем фильтры
                 FillFilters();
 
-                // Применяем фильтрацию и сортировку
-                ApplyFiltersAndSort();
+                // Применяем фильтрацию
+                ApplyFilters();
 
                 // Обновляем статистику
                 UpdateStatistics();
@@ -124,12 +123,9 @@ namespace ShoeStore
                 cmbSupplierFilter.Items.Add(supplier);
             }
             cmbSupplierFilter.SelectedIndex = 0;
-
-            // Фильтр по скидке
-            cmbDiscountFilter.SelectedIndex = 0;
         }
 
-        private void ApplyFiltersAndSort()
+        private void ApplyFilters()
         {
             if (_allTovars == null) return;
 
@@ -173,43 +169,6 @@ namespace ShoeStore
                 filtered = filtered.Where(t => t.Id_supplier == _selectedSupplierId.Value);
             }
 
-            // Фильтр по скидке
-            if (_discountFilter == "Со скидкой")
-            {
-                filtered = filtered.Where(t => (t.Discount ?? 0) > 0);
-            }
-            else if (_discountFilter == "Без скидки")
-            {
-                filtered = filtered.Where(t => (t.Discount ?? 0) == 0);
-            }
-
-            // Применяем сортировку
-            switch (_currentSort)
-            {
-                case "PriceAsc":
-                    filtered = filtered.OrderBy(t => t.Price);
-                    break;
-                case "PriceDesc":
-                    filtered = filtered.OrderByDescending(t => t.Price);
-                    break;
-                case "QuantityAsc":
-                    filtered = filtered.OrderBy(t => t.Quantity);
-                    break;
-                case "QuantityDesc":
-                    filtered = filtered.OrderByDescending(t => t.Quantity);
-                    break;
-                case "DiscountAsc":
-                    filtered = filtered.OrderBy(t => t.Discount ?? 0);
-                    break;
-                case "DiscountDesc":
-                    filtered = filtered.OrderByDescending(t => t.Discount ?? 0);
-                    break;
-                default:
-                    // Сортировка по умолчанию - по артикулу
-                    filtered = filtered.OrderBy(t => t.Article);
-                    break;
-            }
-
             _filteredTovars = filtered.ToList();
             ItemsControlTovar.ItemsSource = _filteredTovars;
         }
@@ -218,13 +177,11 @@ namespace ShoeStore
         {
             if (_filteredTovars == null) return;
 
-            txtTotalItems.Text = $"Всего товаров: {_filteredTovars.Count}";
-
+            int totalItems = _filteredTovars.Count;
             int withDiscount = _filteredTovars.Count(t => (t.Discount ?? 0) > 0);
-            txtWithDiscount.Text = $"Со скидкой: {withDiscount}";
-
             int lowStock = _filteredTovars.Count(t => (t.Quantity ?? 0) < 10);
-            txtLowStock.Text = $"Мало на складе: {lowStock}";
+
+            txtStatistics.Text = $"Показано товаров: {totalItems} | Со скидкой: {withDiscount} | Мало на складе: {lowStock}";
         }
 
         // Обработчики событий фильтрации
@@ -232,7 +189,7 @@ namespace ShoeStore
         private void TxtSearch_TextChanged(object sender, TextChangedEventArgs e)
         {
             _currentSearch = txtSearch.Text;
-            ApplyFiltersAndSort();
+            ApplyFilters();
             UpdateStatistics();
         }
 
@@ -246,7 +203,7 @@ namespace ShoeStore
             {
                 _selectedTypeId = null;
             }
-            ApplyFiltersAndSort();
+            ApplyFilters();
             UpdateStatistics();
         }
 
@@ -260,7 +217,7 @@ namespace ShoeStore
             {
                 _selectedCategoryId = null;
             }
-            ApplyFiltersAndSort();
+            ApplyFilters();
             UpdateStatistics();
         }
 
@@ -274,7 +231,7 @@ namespace ShoeStore
             {
                 _selectedManufacturerId = null;
             }
-            ApplyFiltersAndSort();
+            ApplyFilters();
             UpdateStatistics();
         }
 
@@ -288,39 +245,8 @@ namespace ShoeStore
             {
                 _selectedSupplierId = null;
             }
-            ApplyFiltersAndSort();
+            ApplyFilters();
             UpdateStatistics();
-        }
-
-        private void CmbDiscountFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (cmbDiscountFilter.SelectedItem is ComboBoxItem selectedItem)
-            {
-                _discountFilter = selectedItem.Content.ToString();
-            }
-            ApplyFiltersAndSort();
-            UpdateStatistics();
-        }
-
-        // Обработчики сортировки
-
-        private void RbSort_Checked(object sender, RoutedEventArgs e)
-        {
-            RadioButton rb = sender as RadioButton;
-            if (rb == null) return;
-
-            _currentSort = rb.Name switch
-            {
-                "rbPriceAsc" => "PriceAsc",
-                "rbPriceDesc" => "PriceDesc",
-                "rbQuantityAsc" => "QuantityAsc",
-                "rbQuantityDesc" => "QuantityDesc",
-                "rbDiscountAsc" => "DiscountAsc",
-                "rbDiscountDesc" => "DiscountDesc",
-                _ => ""
-            };
-
-            ApplyFiltersAndSort();
         }
 
         // Обработчики кнопок
@@ -331,98 +257,7 @@ namespace ShoeStore
             MessageBox.Show("Данные успешно обновлены!", "Обновление",
                 MessageBoxButton.OK, MessageBoxImage.Information);
         }
-
-        private void BtnResetFilters_Click(object sender, RoutedEventArgs e)
-        {
-            // Сброс фильтров
-            txtSearch.Text = "";
-            cmbTypeFilter.SelectedIndex = 0;
-            cmbCategoryFilter.SelectedIndex = 0;
-            cmbManufacturerFilter.SelectedIndex = 0;
-            cmbSupplierFilter.SelectedIndex = 0;
-            cmbDiscountFilter.SelectedIndex = 0;
-
-            // Сброс сортировки
-            _currentSort = "";
-
-            // Сброс радио-кнопок
-            var sortPanel = rbPriceAsc.Parent as StackPanel;
-            if (sortPanel != null)
-            {
-                foreach (var child in sortPanel.Children)
-                {
-                    if (child is RadioButton radioButton)
-                    {
-                        radioButton.IsChecked = false;
-                    }
-                }
-            }
-
-            ApplyFiltersAndSort();
-            UpdateStatistics();
-        }
-
-        private void BtnAddNew_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show("Функционал добавления товара будет реализован позже", "В разработке",
-                MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-
-        private void BtnEdit_Click(object sender, RoutedEventArgs e)
-        {
-            Button btn = sender as Button;
-            if (btn?.Tag is string article)
-            {
-                var tovar = _allTovars.FirstOrDefault(t => t.Article == article);
-                if (tovar != null)
-                {
-                    MessageBox.Show($"Редактирование товара: {tovar.Types?.Type}\nАртикул: {article}",
-                        "Редактирование", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-            }
-        }
-
-        private void BtnChangePhoto_Click(object sender, RoutedEventArgs e)
-        {
-            Button btn = sender as Button;
-            if (btn?.Tag is string article)
-            {
-                MessageBox.Show($"Изменение фото для товара Артикул: {article}",
-                    "Изменение фото", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-        }
-
-        private void BtnDelete_Click(object sender, RoutedEventArgs e)
-        {
-            Button btn = sender as Button;
-            if (btn?.Tag is string article)
-            {
-                var result = MessageBox.Show("Вы уверены, что хотите удалить этот товар?",
-                    "Подтверждение удаления", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
-                if (result == MessageBoxResult.Yes)
-                {
-                    try
-                    {
-                        var context = ShoeStoreBD.GetContext();
-                        var tovar = context.Tovar.FirstOrDefault(t => t.Article == article);
-                        if (tovar != null)
-                        {
-                            context.Tovar.Remove(tovar);
-                            context.SaveChanges();
-                            LoadData(); // Перезагружаем данные
-                            MessageBox.Show($"Товар {article} успешно удален!",
-                                "Удаление", MessageBoxButton.OK, MessageBoxImage.Information);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Ошибка удаления: {ex.Message}",
-                            "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-                }
-            }
-        }
+ 
 
         private void LogoutButton_Click(object sender, RoutedEventArgs e)
         {
@@ -438,6 +273,11 @@ namespace ShoeStore
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
             NavigationService.Navigate(new MainPage());
+        }
+
+        private void ViewOrdersButton_Click(object sender, RoutedEventArgs e)
+        {
+            NavigationService.Navigate(new ManagOrdersPage(_currentUser));
         }
     }
 
@@ -634,66 +474,6 @@ namespace ShoeStore
             }
 
             return Visibility.Collapsed;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class ManagerQuantityColorConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is decimal quantityDecimal)
-            {
-                return GetColorForQuantity((double)quantityDecimal);
-            }
-            else if (value is double quantityDouble)
-            {
-                return GetColorForQuantity(quantityDouble);
-            }
-            else if (value is int quantityInt)
-            {
-                return GetColorForQuantity(quantityInt);
-            }
-            else if (value is float quantityFloat)
-            {
-                return GetColorForQuantity(quantityFloat);
-            }
-
-            return new SolidColorBrush(Colors.Black);
-        }
-
-        private SolidColorBrush GetColorForQuantity(double quantity)
-        {
-            if (quantity <= 0)
-                return new SolidColorBrush(Colors.Red);
-            else if (quantity < 10)
-                return new SolidColorBrush(Colors.Orange);
-            else if (quantity < 50)
-                return new SolidColorBrush(Colors.Gold);
-            else
-                return new SolidColorBrush(Colors.Green);
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class DiscountPriceConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is int price && parameter is double discount)
-            {
-                double discountedPrice = price * (1 - discount / 100);
-                return discountedPrice.ToString("N0");
-            }
-            return value?.ToString() ?? "0";
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

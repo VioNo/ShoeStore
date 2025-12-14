@@ -1,0 +1,245 @@
+﻿<Window x:Class="ShoeStore.ProductEditWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="{Binding WindowTitle}" 
+        Height="700" Width="600"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize">
+
+    <Window.Resources>
+        <Style x:Key="LabelStyle" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#333"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,5,10,5"/>
+            <Setter Property="Width" Value="150"/>
+        </Style>
+
+        <Style x:Key="TextBoxStyle" TargetType="TextBox">
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Margin" Value="0,5,0,5"/>
+        </Style>
+
+        <Style x:Key="ComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Margin" Value="0,5,0,5"/>
+        </Style>
+
+        <Style x:Key="ButtonStyle" TargetType="Button">
+            <Setter Property="Padding" Value="10 5"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Заголовок -->
+        <TextBlock Grid.Row="0" 
+                   Text="{Binding WindowTitle}" 
+                   FontSize="18" 
+                   FontWeight="Bold"
+                   Margin="0,0,0,20"
+                   HorizontalAlignment="Center"/>
+
+        <!-- Форма редактирования -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- Артикул -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Артикул:" Style="{StaticResource LabelStyle}"/>
+                    <TextBox Grid.Column="1" 
+                             Text="{Binding Article, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource TextBoxStyle}"
+                             IsEnabled="{Binding IsNewProduct}"/>
+                </Grid>
+
+                <!-- Тип товара -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Тип товара:" Style="{StaticResource LabelStyle}"/>
+                    <ComboBox Grid.Column="1" 
+                              ItemsSource="{Binding Types}"
+                              DisplayMemberPath="Type"
+                              SelectedValuePath="Id_type"
+                              SelectedValue="{Binding SelectedTypeId}"
+                              Style="{StaticResource ComboBoxStyle}"/>
+                </Grid>
+
+                <!-- Категория -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Категория:" Style="{StaticResource LabelStyle}"/>
+                    <ComboBox Grid.Column="1" 
+                              ItemsSource="{Binding Categories}"
+                              DisplayMemberPath="Category"
+                              SelectedValuePath="Id_category"
+                              SelectedValue="{Binding SelectedCategoryId}"
+                              Style="{StaticResource ComboBoxStyle}"/>
+                </Grid>
+
+                <!-- Название товара (из таблицы Types) -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Название товара:" Style="{StaticResource LabelStyle}"/>
+                    <TextBox Grid.Column="1" 
+                             Text="{Binding ProductName}"
+                             Style="{StaticResource TextBoxStyle}"/>
+                </Grid>
+
+                <!-- Описание -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Описание:" Style="{StaticResource LabelStyle}"/>
+                    <TextBox Grid.Column="1" 
+                             Text="{Binding Description}"
+                             Style="{StaticResource TextBoxStyle}"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             Height="80"
+                             VerticalScrollBarVisibility="Auto"/>
+                </Grid>
+
+                <!-- Производитель -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Производитель:" Style="{StaticResource LabelStyle}"/>
+                    <ComboBox Grid.Column="1" 
+                              ItemsSource="{Binding Manufacturers}"
+                              DisplayMemberPath="Manufacturer"
+                              SelectedValuePath="Id_manufacturer"
+                              SelectedValue="{Binding SelectedManufacturerId}"
+                              Style="{StaticResource ComboBoxStyle}"/>
+                </Grid>
+
+                <!-- Поставщик -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Поставщик:" Style="{StaticResource LabelStyle}"/>
+                    <ComboBox Grid.Column="1" 
+                              ItemsSource="{Binding Suppliers}"
+                              DisplayMemberPath="Supplier"
+                              SelectedValuePath="Id_supplier"
+                              SelectedValue="{Binding SelectedSupplierId}"
+                              Style="{StaticResource ComboBoxStyle}"/>
+                </Grid>
+
+                <!-- Цена -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Цена (₽):" Style="{StaticResource LabelStyle}"/>
+                    <TextBox Grid.Column="1" 
+                             Text="{Binding Price, StringFormat=N0}"
+                             Style="{StaticResource TextBoxStyle}"/>
+                </Grid>
+
+                <!-- Скидка -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Скидка (%):" Style="{StaticResource LabelStyle}"/>
+                    <TextBox Grid.Column="1" 
+                             Text="{Binding Discount, StringFormat=N1}"
+                             Style="{StaticResource TextBoxStyle}"/>
+                </Grid>
+
+                <!-- Количество -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Количество:" Style="{StaticResource LabelStyle}"/>
+                    <TextBox Grid.Column="1" 
+                             Text="{Binding Quantity, StringFormat=N1}"
+                             Style="{StaticResource TextBoxStyle}"/>
+                </Grid>
+
+                <!-- Единица измерения -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Единица измерения:" Style="{StaticResource LabelStyle}"/>
+                    <TextBox Grid.Column="1" 
+                             Text="{Binding Measurement}"
+                             Style="{StaticResource TextBoxStyle}"/>
+                </Grid>
+
+                <!-- Фото -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Имя файла фото:" Style="{StaticResource LabelStyle}"/>
+                    <TextBox Grid.Column="1" 
+                             Text="{Binding Photo}"
+                             Style="{StaticResource TextBoxStyle}"/>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Кнопки -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="ОТМЕНА" 
+                    Click="CancelButton_Click"
+                    Style="{StaticResource ButtonStyle}"
+                    Background="#9E9E9E"
+                    Foreground="White"/>
+
+            <Button Content="СОХРАНИТЬ" 
+                    Click="SaveButton_Click"
+                    Style="{StaticResource ButtonStyle}"
+                    Background="#4CAF50"
+                    Foreground="White"/>
+
+            <!-- Кнопка удаления (только для редактирования) -->
+            <Button Content="УДАЛИТЬ" 
+                    Click="DeleteButton_Click"
+                    Style="{StaticResource ButtonStyle}"
+                    Background="#F44336"
+                    Foreground="White"
+                    Visibility="{Binding DeleteButtonVisibility}"/>
+        </StackPanel>
+    </Grid>
+</Window>
