@@ -38,7 +38,7 @@ namespace ShoeStore
             LoadData();
 
             // Добавляем обработчики
-            ListBoxTovar.AddHandler(MouseUpEvent, new MouseButtonEventHandler(Item_MouseUp), true);
+            //ListBoxTovar.AddHandler(MouseUpEvent, new MouseButtonEventHandler(Item_MouseUp), true);
             this.KeyDown += AdminPage_KeyDown;
         }
 
@@ -337,7 +337,8 @@ namespace ShoeStore
         // Редактирование товара по двойному клику
         private void Item_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            if (e.ChangedButton == MouseButton.Left && e.ClickCount == 2)
+            // Если это левая кнопка мыши и не двойной клик (чтобы избежать конфликта)
+            if (e.ChangedButton == MouseButton.Left && e.ClickCount == 1)
             {
                 // Ищем родительский Border
                 var source = e.OriginalSource as DependencyObject;
@@ -348,7 +349,12 @@ namespace ShoeStore
 
                 if (source is Border border && border.DataContext is Tovar selectedTovar)
                 {
+                    // Предотвращаем дальнейшую обработку события
+                    e.Handled = true;
+
+                    // Небольшая задержка, чтобы избежать повторного открытия
                     EditProduct(selectedTovar);
+                    
                 }
             }
         }
@@ -629,6 +635,125 @@ namespace ShoeStore
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+
+    // ============================================
+    // ДОПОЛНИТЕЛЬНЫЕ КОНВЕРТЕРЫ ДЛЯ ADMINPAGE
+    // ============================================
+
+    /// <summary>
+    /// Конвертер для подсветки фона строки
+    /// </summary>
+    public class AdminRowBackgroundConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (values == null || values.Length < 2)
+                return Brushes.White;
+
+            decimal discount = 0;
+            int quantity = 0;
+
+            // Извлекаем скидку
+            if (values[0] != null)
+            {
+                if (values[0] is decimal discountDecimal)
+                    discount = discountDecimal;
+                else if (values[0] is double discountDouble)
+                    discount = (decimal)discountDouble;
+                else if (values[0] is int discountInt)
+                    discount = discountInt;
+                else if (values[0] is float discountFloat)
+                    discount = (decimal)discountFloat;
+            }
+
+            // Извлекаем количество
+            if (values[1] != null)
+            {
+                if (values[1] is int quantityInt)
+                    quantity = quantityInt;
+                else if (values[1] is decimal quantityDecimal)
+                    quantity = (int)quantityDecimal;
+                else if (values[1] is double quantityDouble)
+                    quantity = (int)quantityDouble;
+            }
+
+            // Если товара нет на складе - голубой фон (#ADD8E6)
+            if (quantity <= 0)
+            {
+                return new SolidColorBrush(Color.FromArgb(255, 173, 216, 230));
+            }
+
+            // Если скидка превышает 15% - зеленый фон (#2E8B57)
+            if (discount > 15)
+            {
+                return new SolidColorBrush(Color.FromArgb(255, 46, 139, 87));
+            }
+
+            // Во всех остальных случаях - белый фон
+            return Brushes.White;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Конвертер для отображения итоговой цены
+    /// </summary>
+    public class AdminPriceDisplayConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (values == null || values.Length < 2)
+                return string.Empty;
+
+            decimal price = 0;
+            decimal discount = 0;
+
+            // Извлекаем цену
+            if (values[0] != null)
+            {
+                if (values[0] is decimal priceDecimal)
+                    price = priceDecimal;
+                else if (values[0] is double priceDouble)
+                    price = (decimal)priceDouble;
+                else if (values[0] is int priceInt)
+                    price = priceInt;
+                else if (values[0] is float priceFloat)
+                    price = (decimal)priceFloat;
+            }
+
+            // Извлекаем скидку
+            if (values[1] != null)
+            {
+                if (values[1] is decimal discountDecimal)
+                    discount = discountDecimal;
+                else if (values[1] is double discountDouble)
+                    discount = (decimal)discountDouble;
+                else if (values[1] is int discountInt)
+                    discount = discountInt;
+                else if (values[1] is float discountFloat)
+                    discount = (decimal)discountFloat;
+            }
+
+            // Если есть скидка, рассчитываем итоговую цену
+            if (discount > 0)
+            {
+                decimal finalPrice = price * (100 - discount) / 100;
+                return $"{finalPrice:F2} ₽";
+            }
+
+            return string.Empty;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }

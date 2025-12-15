@@ -48,14 +48,13 @@ namespace ShoeStore
         }
     }
 
-    // КОНВЕРТЕРЫ (ДОЛЖНЫ БЫТЬ PUBLIC!)
-    public class ImagePathConverter : IValueConverter
+    // УНИКАЛЬНЫЕ КОНВЕРТЕРЫ ДЛЯ GUEST PAGE
+    public class GuestImagePathConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             string imageName = value as string;
 
-            // Если имя файла пустое, используем заглушку
             if (string.IsNullOrWhiteSpace(imageName))
             {
                 return LoadDefaultImage();
@@ -63,7 +62,6 @@ namespace ShoeStore
 
             try
             {
-                // Путь к папке Resources в проекте
                 string projectRoot = GetProjectRootDirectory();
                 string resourcesPath = Path.Combine(projectRoot, "Resources", imageName);
 
@@ -88,7 +86,6 @@ namespace ShoeStore
             }
         }
 
-        // Метод для получения пути к папке проекта
         private string GetProjectRootDirectory()
         {
             string currentDir = Directory.GetCurrentDirectory();
@@ -96,7 +93,6 @@ namespace ShoeStore
             return projectRoot;
         }
 
-        // Метод для загрузки изображения-заглушки
         private BitmapImage LoadDefaultImage()
         {
             try
@@ -125,7 +121,6 @@ namespace ShoeStore
             }
         }
 
-        // Метод для создания простой заглушки программно
         private BitmapImage CreateSimpleDefaultImage()
         {
             try
@@ -141,7 +136,7 @@ namespace ShoeStore
 
                     FormattedText text = new FormattedText(
                         "No Image",
-                        System.Globalization.CultureInfo.CurrentCulture,
+                        CultureInfo.CurrentCulture,
                         FlowDirection.LeftToRight,
                         new Typeface("Arial"),
                         12,
@@ -184,31 +179,24 @@ namespace ShoeStore
         }
     }
 
-    public class DiscountColorConverter : IValueConverter
+    public class GuestDiscountColorConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is decimal discountDecimal && discountDecimal > 0)
+            decimal discount = 0;
+
+            if (value is decimal discountDecimal)
+                discount = discountDecimal;
+            else if (value is double discountDouble)
+                discount = (decimal)discountDouble;
+            else if (value is int discountInt)
+                discount = discountInt;
+            else if (value is float discountFloat)
+                discount = (decimal)discountFloat;
+
+            if (discount > 0)
             {
-                return discountDecimal > 15 ?
-                    new SolidColorBrush(Colors.Green) :
-                    new SolidColorBrush(Colors.Red);
-            }
-            else if (value is double discountDouble && discountDouble > 0)
-            {
-                return discountDouble > 15 ?
-                    new SolidColorBrush(Colors.Green) :
-                    new SolidColorBrush(Colors.Red);
-            }
-            else if (value is int discountInt && discountInt > 0)
-            {
-                return discountInt > 15 ?
-                    new SolidColorBrush(Colors.Green) :
-                    new SolidColorBrush(Colors.Red);
-            }
-            else if (value is float discountFloat && discountFloat > 0)
-            {
-                return discountFloat > 15 ?
+                return discount > 15 ?
                     new SolidColorBrush(Colors.Green) :
                     new SolidColorBrush(Colors.Red);
             }
@@ -222,31 +210,141 @@ namespace ShoeStore
         }
     }
 
-    public class DiscountToVisibilityConverter : IValueConverter
+    public class GuestDiscountToVisibilityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is decimal discountDecimal && discountDecimal > 0)
-            {
-                return Visibility.Visible;
-            }
-            else if (value is double discountDouble && discountDouble > 0)
-            {
-                return Visibility.Visible;
-            }
-            else if (value is int discountInt && discountInt > 0)
-            {
-                return Visibility.Visible;
-            }
-            else if (value is float discountFloat && discountFloat > 0)
-            {
-                return Visibility.Visible;
-            }
+            if (value == null) return Visibility.Collapsed;
 
-            return Visibility.Collapsed;
+            decimal discount = 0;
+
+            if (value is decimal discountDecimal)
+                discount = discountDecimal;
+            else if (value is double discountDouble)
+                discount = (decimal)discountDouble;
+            else if (value is int discountInt)
+                discount = discountInt;
+            else if (value is float discountFloat)
+                discount = (decimal)discountFloat;
+
+            return discount > 0 ? Visibility.Visible : Visibility.Collapsed;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Конвертер для подсветки фона строки
+    /// </summary>
+    public class GuestRowBackgroundConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (values == null || values.Length < 2)
+                return Brushes.White;
+
+            decimal discount = 0;
+            int quantity = 0;
+
+            // Извлекаем скидку
+            if (values[0] != null)
+            {
+                if (values[0] is decimal discountDecimal)
+                    discount = discountDecimal;
+                else if (values[0] is double discountDouble)
+                    discount = (decimal)discountDouble;
+                else if (values[0] is int discountInt)
+                    discount = discountInt;
+                else if (values[0] is float discountFloat)
+                    discount = (decimal)discountFloat;
+            }
+
+            // Извлекаем количество
+            if (values[1] != null)
+            {
+                if (values[1] is int quantityInt)
+                    quantity = quantityInt;
+                else if (values[1] is decimal quantityDecimal)
+                    quantity = (int)quantityDecimal;
+                else if (values[1] is double quantityDouble)
+                    quantity = (int)quantityDouble;
+            }
+
+            // Если товара нет на складе - голубой фон (#ADD8E6)
+            if (quantity <= 0)
+            {
+                return new SolidColorBrush(Color.FromArgb(255, 173, 216, 230));
+            }
+
+            // Если скидка превышает 15% - зеленый фон (#2E8B57)
+            if (discount > 15)
+            {
+                return new SolidColorBrush(Color.FromArgb(255, 46, 139, 87));
+            }
+
+            // Во всех остальных случаях - белый фон
+            return Brushes.White;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Конвертер для отображения итоговой цены
+    /// </summary>
+    public class GuestPriceDisplayConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (values == null || values.Length < 2)
+                return string.Empty;
+
+            decimal price = 0;
+            decimal discount = 0;
+
+            // Извлекаем цену
+            if (values[0] != null)
+            {
+                if (values[0] is decimal priceDecimal)
+                    price = priceDecimal;
+                else if (values[0] is double priceDouble)
+                    price = (decimal)priceDouble;
+                else if (values[0] is int priceInt)
+                    price = priceInt;
+                else if (values[0] is float priceFloat)
+                    price = (decimal)priceFloat;
+            }
+
+            // Извлекаем скидку
+            if (values[1] != null)
+            {
+                if (values[1] is decimal discountDecimal)
+                    discount = discountDecimal;
+                else if (values[1] is double discountDouble)
+                    discount = (decimal)discountDouble;
+                else if (values[1] is int discountInt)
+                    discount = discountInt;
+                else if (values[1] is float discountFloat)
+                    discount = (decimal)discountFloat;
+            }
+
+            // Если есть скидка, рассчитываем итоговую цену
+            if (discount > 0)
+            {
+                decimal finalPrice = price * (100 - discount) / 100;
+                return $"{finalPrice:F2} ₽";
+            }
+
+            return string.Empty;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }

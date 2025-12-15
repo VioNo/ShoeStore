@@ -18,55 +18,8 @@
             <local:AutoClientImagePathConverter x:Key="AutoClientImagePathConverter"/>
             <local:AutoClientDiscountToVisibilityConverter x:Key="AutoClientDiscountToVisibilityConverter"/>
             <local:AutoClientDiscountColorConverter x:Key="AutoClientDiscountColorConverter"/>
-
-            <!-- Стиль для карточки товара -->
-            <Style x:Key="ProductCardStyle" TargetType="Border">
-                <Setter Property="Background" Value="White"/>
-                <Setter Property="BorderBrush" Value="#CCCCCC"/>
-                <Setter Property="BorderThickness" Value="1"/>
-                <Setter Property="Padding" Value="15"/>
-                <Setter Property="Margin" Value="10,5,10,5"/>
-            </Style>
-
-            <!-- Стиль для заголовков в карточке -->
-            <Style x:Key="LabelStyle" TargetType="TextBlock">
-                <Setter Property="FontWeight" Value="SemiBold"/>
-                <Setter Property="Foreground" Value="#666666"/>
-                <Setter Property="VerticalAlignment" Value="Center"/>
-                <Setter Property="FontSize" Value="12"/>
-                <Setter Property="Width" Value="130"/>
-            </Style>
-
-            <!-- Стиль для значений в карточке -->
-            <Style x:Key="ValueStyle" TargetType="TextBlock">
-                <Setter Property="VerticalAlignment" Value="Center"/>
-                <Setter Property="TextWrapping" Value="Wrap"/>
-                <Setter Property="FontSize" Value="12"/>
-            </Style>
-
-            <!-- Стиль для названия товара -->
-            <Style x:Key="ProductNameStyle" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="16"/>
-                <Setter Property="FontWeight" Value="Bold"/>
-                <Setter Property="Foreground" Value="#333333"/>
-                <Setter Property="TextWrapping" Value="Wrap"/>
-            </Style>
-
-            <!-- Стиль для цены -->
-            <Style x:Key="PriceStyle" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="14"/>
-                <Setter Property="FontWeight" Value="Bold"/>
-                <Setter Property="Foreground" Value="#E53935"/>
-            </Style>
-
-            <!-- Базовый стиль для скидки -->
-            <Style x:Key="DiscountBaseStyle" TargetType="Border">
-                <Setter Property="CornerRadius" Value="3"/>
-                <Setter Property="Padding" Value="5 2"/>
-                <Setter Property="HorizontalAlignment" Value="Right"/>
-                <Setter Property="VerticalAlignment" Value="Center"/>
-                <Setter Property="Visibility" Value="Collapsed"/>
-            </Style>
+            <local:AutoClientRowBackgroundConverter x:Key="AutoClientRowBackgroundConverter"/>
+            <local:AutoClientPriceDisplayConverter x:Key="AutoClientPriceDisplayConverter"/>
 
             <!-- Стиль для кнопки выхода -->
             <Style x:Key="LogoutButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
@@ -133,7 +86,6 @@
                               ItemsSource="{Binding}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <!-- Вертикальный StackPanel для отображения списком -->
                             <StackPanel Orientation="Vertical"/>
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
@@ -141,32 +93,34 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <!-- Каждая карточка товара как строка таблицы -->
-                            <Border Style="{StaticResource ProductCardStyle}">
+                            <Border BorderBrush="#CCCCCC"
+                                    BorderThickness="1"
+                                    Padding="15"
+                                    Margin="10,5,10,5">
+                                <!-- Динамический фон строки -->
+                                <Border.Background>
+                                    <MultiBinding Converter="{StaticResource AutoClientRowBackgroundConverter}">
+                                        <Binding Path="Discount"/>
+                                        <Binding Path="Quantity"/>
+                                    </MultiBinding>
+                                </Border.Background>
+
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <!-- Столбец для фото -->
                                         <ColumnDefinition Width="Auto"/>
-                                        <!-- Столбец для остальных данных -->
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
-                                        <!-- Первая строка: Категория и Наименование товара -->
                                         <RowDefinition Height="Auto"/>
-                                        <!-- Вторая строка: Описание и Скидка -->
                                         <RowDefinition Height="Auto"/>
-                                        <!-- Третья строка: Производитель -->
                                         <RowDefinition Height="Auto"/>
-                                        <!-- Четвертая строка: Поставщик -->
                                         <RowDefinition Height="Auto"/>
-                                        <!-- Пятая строка: Цена -->
                                         <RowDefinition Height="Auto"/>
-                                        <!-- Шестая строка: Единица измерения -->
                                         <RowDefinition Height="Auto"/>
-                                        <!-- Седьмая строка: Количество на складе -->
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
-                                    <!-- Фото товара (занимает все строки в первом столбце) -->
+                                    <!-- Фото товара -->
                                     <Border Grid.Row="0" Grid.Column="0" 
                                             Grid.RowSpan="7" 
                                             Margin="0,0,15,0"
@@ -183,19 +137,27 @@
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
 
-                                        <!-- Категория товара -->
                                         <TextBlock Text="Категория товара:" 
-                                                   Style="{StaticResource LabelStyle}"/>
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#666666"
+                                                   VerticalAlignment="Center"
+                                                   FontSize="12"
+                                                   Width="130"/>
                                         <TextBlock Grid.Column="1" 
                                                    Text="{Binding Categories.Category}" 
-                                                   Style="{StaticResource ValueStyle}"
+                                                   VerticalAlignment="Center"
+                                                   TextWrapping="Wrap"
+                                                   FontSize="12"
                                                    Margin="5,0,0,0"/>
                                     </Grid>
 
-                                    <!-- Наименование товара (на той же строке справа) -->
+                                    <!-- Наименование товара -->
                                     <TextBlock Grid.Row="0" Grid.Column="1" 
                                                Text="{Binding Types.Type}" 
-                                               Style="{StaticResource ProductNameStyle}"
+                                               FontSize="16"
+                                               FontWeight="Bold"
+                                               Foreground="#333333"
+                                               TextWrapping="Wrap"
                                                HorizontalAlignment="Right"
                                                Margin="0,0,0,5"/>
 
@@ -206,30 +168,34 @@
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
 
-                                        <!-- Описание товара -->
                                         <TextBlock Text="Описание товара:" 
-                                                   Style="{StaticResource LabelStyle}"/>
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#666666"
+                                                   VerticalAlignment="Center"
+                                                   FontSize="12"
+                                                   Width="130"/>
                                         <TextBlock Grid.Column="1" 
                                                    Text="{Binding Description}" 
-                                                   Style="{StaticResource ValueStyle}"
+                                                   VerticalAlignment="Center"
+                                                   TextWrapping="Wrap"
+                                                   FontSize="12"
                                                    Margin="5,0,0,0"
                                                    MaxHeight="40"
                                                    TextTrimming="CharacterEllipsis"/>
                                     </Grid>
 
-                                    <!-- Скидка с изменяемым цветом -->
+                                    <!-- Скидка -->
                                     <Border Grid.Row="1" Grid.Column="1" 
-                                            Style="{StaticResource DiscountBaseStyle}"
+                                            CornerRadius="3"
+                                            Padding="5 2"
                                             HorizontalAlignment="Right"
                                             VerticalAlignment="Top"
                                             Margin="0,2,0,0">
 
-                                        <!-- Динамический Background через конвертер -->
                                         <Border.Background>
                                             <Binding Path="Discount" Converter="{StaticResource AutoClientDiscountColorConverter}"/>
                                         </Border.Background>
 
-                                        <!-- Видимость через конвертер -->
                                         <Border.Visibility>
                                             <Binding Path="Discount" Converter="{StaticResource AutoClientDiscountToVisibilityConverter}"/>
                                         </Border.Visibility>
@@ -248,10 +214,16 @@
                                         </Grid.ColumnDefinitions>
 
                                         <TextBlock Text="Производитель:" 
-                                                   Style="{StaticResource LabelStyle}"/>
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#666666"
+                                                   VerticalAlignment="Center"
+                                                   FontSize="12"
+                                                   Width="130"/>
                                         <TextBlock Grid.Column="1" 
                                                    Text="{Binding Manufactureres.Manufacturer}" 
-                                                   Style="{StaticResource ValueStyle}"
+                                                   VerticalAlignment="Center"
+                                                   TextWrapping="Wrap"
+                                                   FontSize="12"
                                                    Margin="5,0,0,0"/>
                                     </Grid>
 
@@ -263,10 +235,16 @@
                                         </Grid.ColumnDefinitions>
 
                                         <TextBlock Text="Поставщик:" 
-                                                   Style="{StaticResource LabelStyle}"/>
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#666666"
+                                                   VerticalAlignment="Center"
+                                                   FontSize="12"
+                                                   Width="130"/>
                                         <TextBlock Grid.Column="1" 
                                                    Text="{Binding Supplieres.Supplier}" 
-                                                   Style="{StaticResource ValueStyle}"
+                                                   VerticalAlignment="Center"
+                                                   TextWrapping="Wrap"
+                                                   FontSize="12"
                                                    Margin="5,0,0,0"/>
                                     </Grid>
 
@@ -278,11 +256,55 @@
                                         </Grid.ColumnDefinitions>
 
                                         <TextBlock Text="Цена:" 
-                                                   Style="{StaticResource LabelStyle}"/>
-                                        <TextBlock Grid.Column="1" 
-                                                   Text="{Binding Price, StringFormat={}{0} ₽}" 
-                                                   Style="{StaticResource PriceStyle}"
-                                                   Margin="5,0,0,0"/>
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#666666"
+                                                   VerticalAlignment="Center"
+                                                   FontSize="12"
+                                                   Width="130"/>
+
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <!-- Цена без скидки -->
+                                            <TextBlock Text="{Binding Price, StringFormat={}{0} ₽}" 
+                                                       FontSize="14"
+                                                       FontWeight="Bold"
+                                                       Margin="5,0,0,0">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Foreground" Value="#E53935"/>
+                                                        <Setter Property="TextDecorations" Value="None"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Discount, Converter={StaticResource AutoClientDiscountToVisibilityConverter}}" Value="Visible">
+                                                                <Setter Property="Foreground" Value="Red"/>
+                                                                <Setter Property="TextDecorations" Value="Strikethrough"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+
+                                            <!-- Итоговая цена -->
+                                            <TextBlock FontSize="16"
+                                                       FontWeight="Bold"
+                                                       Foreground="Black"
+                                                       Margin="5,0,0,0">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Discount, Converter={StaticResource AutoClientDiscountToVisibilityConverter}}" Value="Visible">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                                <TextBlock.Text>
+                                                    <MultiBinding Converter="{StaticResource AutoClientPriceDisplayConverter}">
+                                                        <Binding Path="Price"/>
+                                                        <Binding Path="Discount"/>
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                        </StackPanel>
                                     </Grid>
 
                                     <!-- Шестая строка: Единица измерения -->
@@ -293,10 +315,16 @@
                                         </Grid.ColumnDefinitions>
 
                                         <TextBlock Text="Единица измерения:" 
-                                                   Style="{StaticResource LabelStyle}"/>
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#666666"
+                                                   VerticalAlignment="Center"
+                                                   FontSize="12"
+                                                   Width="130"/>
                                         <TextBlock Grid.Column="1" 
                                                    Text="{Binding Measurement}" 
-                                                   Style="{StaticResource ValueStyle}"
+                                                   VerticalAlignment="Center"
+                                                   TextWrapping="Wrap"
+                                                   FontSize="12"
                                                    Margin="5,0,0,0"/>
                                     </Grid>
 
@@ -308,14 +336,32 @@
                                         </Grid.ColumnDefinitions>
 
                                         <TextBlock Text="Количество на складе:" 
-                                                   Style="{StaticResource LabelStyle}"/>
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#666666"
+                                                   VerticalAlignment="Center"
+                                                   FontSize="12"
+                                                   Width="130"/>
                                         <TextBlock Grid.Column="1" 
                                                    Text="{Binding Quantity}" 
-                                                   Style="{StaticResource ValueStyle}"
-                                                   Margin="5,0,0,0"/>
+                                                   VerticalAlignment="Center"
+                                                   TextWrapping="Wrap"
+                                                   FontSize="12"
+                                                   Margin="5,0,0,0">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Foreground" Value="#333333"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Quantity}" Value="0">
+                                                            <Setter Property="Foreground" Value="Red"/>
+                                                            <Setter Property="FontWeight" Value="Bold"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
                                     </Grid>
 
-                                    <!-- Артикул (в самом низу справа) -->
+                                    <!-- Артикул -->
                                     <TextBlock Grid.Row="7" Grid.Column="1" 
                                                Text="{Binding Article, StringFormat={}Артикул: {0}}" 
                                                FontSize="10"

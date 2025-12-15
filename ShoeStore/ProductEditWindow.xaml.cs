@@ -4,6 +4,9 @@ using System.Linq;
 using System.Windows;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows.Media.Imaging;
+using Microsoft.Win32;
+using System.IO;
 
 namespace ShoeStore
 {
@@ -11,6 +14,7 @@ namespace ShoeStore
     {
         private Tovar _product;
         private bool _isNewProduct;
+        private BitmapImage _photoPreview;
 
         // Списки для ComboBox
         public List<Types> Types { get; set; }
@@ -24,6 +28,18 @@ namespace ShoeStore
         public bool IsNewProduct => _isNewProduct;
 
         public Visibility DeleteButtonVisibility => _isNewProduct ? Visibility.Collapsed : Visibility.Visible;
+
+        public Visibility PhotoPreviewVisibility => string.IsNullOrWhiteSpace(Photo) ? Visibility.Collapsed : Visibility.Visible;
+
+        public BitmapImage PhotoPreview
+        {
+            get => _photoPreview;
+            set
+            {
+                _photoPreview = value;
+                OnPropertyChanged();
+            }
+        }
 
         public string Article
         {
@@ -99,7 +115,13 @@ namespace ShoeStore
         public string Photo
         {
             get => _product.Photo;
-            set { _product.Photo = value; OnPropertyChanged(); }
+            set
+            {
+                _product.Photo = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(PhotoPreviewVisibility));
+                LoadPhotoPreview();
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -113,6 +135,7 @@ namespace ShoeStore
             _product = product ?? new Tovar();
 
             LoadData();
+            LoadPhotoPreview();
         }
 
         private void LoadData()
@@ -149,6 +172,137 @@ namespace ShoeStore
                 MessageBox.Show($"Ошибка загрузки данных: {ex.Message}", "Ошибка",
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private void LoadPhotoPreview()
+        {
+            if (string.IsNullOrWhiteSpace(Photo))
+            {
+                PhotoPreview = null;
+                return;
+            }
+
+            try
+            {
+                string projectRoot = GetProjectRootDirectory();
+                string resourcesPath = Path.Combine(projectRoot, "Resources", Photo);
+
+                if (File.Exists(resourcesPath))
+                {
+                    BitmapImage bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.UriSource = new Uri(resourcesPath, UriKind.Absolute);
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.EndInit();
+                    bitmap.Freeze();
+                    PhotoPreview = bitmap;
+                }
+                else
+                {
+                    PhotoPreview = null;
+                }
+            }
+            catch
+            {
+                PhotoPreview = null;
+            }
+        }
+
+        private string GetProjectRootDirectory()
+        {
+            string currentDir = Directory.GetCurrentDirectory();
+            string projectRoot = Path.GetFullPath(Path.Combine(currentDir, "..", ".."));
+            return projectRoot;
+        }
+
+        private void SelectPhotoButton_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Filter = "Изображения (*.jpg;*.jpeg;*.png;*.gif;*.bmp)|*.jpg;*.jpeg;*.png;*.gif;*.bmp|Все файлы (*.*)|*.*",
+                Title = "Выберите изображение товара",
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                string selectedFile = openFileDialog.FileName;
+                CopyPhotoToResources(selectedFile);
+            }
+        }
+
+        private void CopyPhotoToResources(string sourceFilePath)
+        {
+            try
+            {
+                // Получаем имя файла
+                string fileName = Path.GetFileName(sourceFilePath);
+
+                // Генерируем уникальное имя файла на основе артикула
+                string uniqueFileName = GenerateUniqueFileName(fileName);
+
+                // Получаем путь к папке Resources
+                string projectRoot = GetProjectRootDirectory();
+                string resourcesPath = Path.Combine(projectRoot, "Resources");
+
+                // Создаем папку Resources, если она не существует
+                if (!Directory.Exists(resourcesPath))
+                {
+                    Directory.CreateDirectory(resourcesPath);
+                }
+
+                string destinationPath = Path.Combine(resourcesPath, uniqueFileName);
+
+                // Копируем файл
+                File.Copy(sourceFilePath, destinationPath, true);
+
+                // Обновляем свойство Photo (только имя файла)
+                Photo = uniqueFileName;
+
+                MessageBox.Show($"Изображение успешно сохранено как: {uniqueFileName}", "Успех",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка копирования изображения: {ex.Message}", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private string GenerateUniqueFileName(string originalFileName)
+        {
+            // Если есть артикул, используем его как основу для имени файла
+            string baseName = string.IsNullOrWhiteSpace(Article) ? "product" : Article;
+
+            // Получаем расширение файла
+            string extension = Path.GetExtension(originalFileName);
+
+            // Убираем недопустимые символы из имени файла
+            string safeBaseName = new string(baseName.Where(c => char.IsLetterOrDigit(c) || c == '-').ToArray());
+
+            // Генерируем имя файла
+            string fileName = $"{safeBaseName}{extension}";
+
+            // Проверяем, существует ли файл с таким именем
+            string projectRoot = GetProjectRootDirectory();
+            string resourcesPath = Path.Combine(projectRoot, "Resources");
+            string fullPath = Path.Combine(resourcesPath, fileName);
+
+            // Если файл уже существует, добавляем цифру в конец
+            if (File.Exists(fullPath))
+            {
+                int counter = 1;
+                string fileNameWithoutExt = Path.GetFileNameWithoutExtension(fileName);
+
+                while (File.Exists(fullPath))
+                {
+                    fileName = $"{fileNameWithoutExt}_{counter}{extension}";
+                    fullPath = Path.Combine(resourcesPath, fileName);
+                    counter++;
+                }
+            }
+
+            return fileName;
         }
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
@@ -202,6 +356,18 @@ namespace ShoeStore
             {
                 try
                 {
+                    // Удаляем фото из папки Resources, если оно существует
+                    if (!string.IsNullOrWhiteSpace(Photo))
+                    {
+                        string projectRoot = GetProjectRootDirectory();
+                        string photoPath = Path.Combine(projectRoot, "Resources", Photo);
+
+                        if (File.Exists(photoPath))
+                        {
+                            File.Delete(photoPath);
+                        }
+                    }
+
                     var context = ShoeStoreBD.GetContext();
                     context.Tovar.Attach(_product);
                     context.Tovar.Remove(_product);
